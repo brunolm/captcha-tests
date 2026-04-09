@@ -54,6 +54,14 @@
         margin-left: 12px;
       }
 
+      .button-row {
+        margin-bottom: 12px;
+      }
+
+      .button-row:last-child {
+        margin-bottom: 0;
+      }
+
       #captcha-container {
         margin-top: 24px;
         display: none;
@@ -91,17 +99,26 @@
   <body>
     <div class="container">
       <div>
-        <button class="btn" id="submit-btn">Submit</button>
-        <button class="btn" id="captcha-btn">Submit with Captcha</button>
-        <button class="btn" id="double-captcha-btn">
-          Submit with Double Captcha
-        </button>
-        <button class="btn" id="multi-captcha-btn">
-          Submit with Multi Captcha
-        </button>
-        <button class="btn" id="captcha-redirect-btn">
-          Submit with Captcha Redirect
-        </button>
+        <div class="button-row">
+          <button class="btn" id="submit-btn">Submit</button>
+        </div>
+        <div class="button-row">
+          <button class="btn" id="captcha-btn">Submit with Captcha</button>
+          <button class="btn" id="recaptcha-btn">Submit with reCAPTCHA</button>
+        </div>
+        <div class="button-row">
+          <button class="btn" id="double-captcha-btn">
+            Submit with Double Captcha
+          </button>
+          <button class="btn" id="multi-captcha-btn">
+            Submit with Multi Captcha
+          </button>
+        </div>
+        <div class="button-row">
+          <button class="btn" id="captcha-redirect-btn">
+            Submit with Captcha Redirect
+          </button>
+        </div>
       </div>
       <div id="captcha-container"></div>
       <div id="result"></div>
@@ -281,6 +298,27 @@
         }
 
         renderWidget();
+      });
+
+      document.getElementById("recaptcha-btn").addEventListener("click", () => {
+        if (!recaptchaReady) return alert("reCAPTCHA script still loading…");
+        const container = document.getElementById("captcha-container");
+        container.innerHTML = "";
+        container.classList.add("visible");
+        document.getElementById("result").textContent = "";
+        hideMessage();
+
+        grecaptcha.render(container, {
+          sitekey: "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",
+          callback: () => {
+            document.getElementById("result").textContent = "reCAPTCHA solved!";
+            showMessage();
+          },
+          "error-callback": () => {
+            document.getElementById("result").textContent =
+              "reCAPTCHA verification failed.";
+          },
+        });
       });
     </script>
   </body>
