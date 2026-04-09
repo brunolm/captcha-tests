@@ -50,6 +50,30 @@
         background: #003d94;
       }
 
+      .btn.cf {
+        background: #f6821f;
+      }
+
+      .btn.cf:hover {
+        background: #d96f15;
+      }
+
+      .btn.rc {
+        background: #4285f4;
+      }
+
+      .btn.rc:hover {
+        background: #3367c7;
+      }
+
+      .btn.mix {
+        background: #7b2ff7;
+      }
+
+      .btn.mix:hover {
+        background: #6322cc;
+      }
+
       .btn + .btn {
         margin-left: 12px;
       }
@@ -103,19 +127,21 @@
           <button class="btn" id="submit-btn">Submit</button>
         </div>
         <div class="button-row">
-          <button class="btn" id="captcha-btn">Submit with Captcha</button>
-          <button class="btn" id="recaptcha-btn">Submit with reCAPTCHA</button>
+          <button class="btn cf" id="captcha-btn">Submit with Captcha</button>
+          <button class="btn rc" id="recaptcha-btn">
+            Submit with reCAPTCHA
+          </button>
         </div>
         <div class="button-row">
-          <button class="btn" id="double-captcha-btn">
+          <button class="btn cf" id="double-captcha-btn">
             Submit with Double Captcha
           </button>
-          <button class="btn" id="multi-captcha-btn">
+          <button class="btn mix" id="multi-captcha-btn">
             Submit with Multi Captcha
           </button>
         </div>
         <div class="button-row">
-          <button class="btn" id="captcha-redirect-btn">
+          <button class="btn cf" id="captcha-redirect-btn">
             Submit with Captcha Redirect
           </button>
         </div>
