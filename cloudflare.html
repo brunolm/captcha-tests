@@ -88,6 +88,9 @@
       <div>
         <button class="btn" id="submit-btn">Submit</button>
         <button class="btn" id="captcha-btn">Submit with Captcha</button>
+        <button class="btn" id="captcha-redirect-btn">
+          Submit with Captcha Redirect
+        </button>
       </div>
       <div id="captcha-container"></div>
       <div id="result"></div>
@@ -142,6 +145,17 @@
       document.getElementById("submit-btn").addEventListener("click", () => {
         showMessage();
       });
+
+      if (new URLSearchParams(window.location.search).has("ok")) {
+        showMessage();
+      }
+
+      document
+        .getElementById("captcha-redirect-btn")
+        .addEventListener("click", () => {
+          window.location.href =
+            "https://brunolm.com/captcha-tests/cloudflare2.html?url=https://brunolm.com/captcha-tests/cloudflare.html?ok=1";
+        });
 
       document.getElementById("captcha-btn").addEventListener("click", () => {
         if (!turnstileReady) return alert("Turnstile script still loading…");
