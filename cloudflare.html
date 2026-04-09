@@ -88,6 +88,9 @@
       <div>
         <button class="btn" id="submit-btn">Submit</button>
         <button class="btn" id="captcha-btn">Submit with Captcha</button>
+        <button class="btn" id="double-captcha-btn">
+          Submit with Double Captcha
+        </button>
         <button class="btn" id="captcha-redirect-btn">
           Submit with Captcha Redirect
         </button>
@@ -149,6 +152,46 @@
       if (new URLSearchParams(window.location.search).has("ok")) {
         showMessage();
       }
+
+      let doubleSolveCount = 0;
+      let doubleWidgetId = null;
+
+      document
+        .getElementById("double-captcha-btn")
+        .addEventListener("click", () => {
+          if (!turnstileReady) return alert("Turnstile script still loading…");
+          doubleSolveCount = 0;
+          const container = document.getElementById("captcha-container");
+          container.innerHTML = "";
+          container.classList.add("visible");
+          document.getElementById("result").textContent = "";
+          hideMessage();
+
+          function renderDoubleWidget() {
+            container.innerHTML = "";
+            doubleWidgetId = turnstile.render(container, {
+              sitekey: SITEKEY,
+              callback: () => {
+                doubleSolveCount++;
+                if (doubleSolveCount < 2) {
+                  document.getElementById("result").textContent =
+                    "Solve " + doubleSolveCount + "/2 — solve once more.";
+                  setTimeout(() => renderDoubleWidget(), 500);
+                } else {
+                  document.getElementById("result").textContent =
+                    "Both challenges solved!";
+                  showMessage();
+                }
+              },
+              "error-callback": () => {
+                document.getElementById("result").textContent =
+                  "Verification failed.";
+              },
+            });
+          }
+
+          renderDoubleWidget();
+        });
 
       document
         .getElementById("captcha-redirect-btn")
