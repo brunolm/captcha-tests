@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Just a moment...</title>
+    <script
+      src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad&render=explicit"
+      async
+      defer
+    ></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f5f5f5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        flex-direction: column;
+      }
+
+      .interstitial {
+        background: #fff;
+        border: 1px solid #d9d9d9;
+        border-radius: 8px;
+        padding: 40px 48px;
+        max-width: 480px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      }
+
+      .shield {
+        width: 40px;
+        height: 40px;
+        margin: 0 auto 20px;
+      }
+
+      .shield svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      h1 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 6px;
+      }
+
+      .domain {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 4px;
+      }
+
+      .checking {
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #ddd;
+        border-top-color: #f6821f;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        flex-shrink: 0;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .checking.done .spinner {
+        display: none;
+      }
+
+      .checkmark {
+        display: none;
+        color: #2ecc71;
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      .checking.done .checkmark {
+        display: inline;
+      }
+
+      #captcha-container {
+        display: flex;
+        justify-content: center;
+        min-height: 65px;
+      }
+
+      .footer {
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid #e5e5e5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 12px;
+        color: #999;
+      }
+
+      .footer .cf-logo {
+        height: 14px;
+      }
+
+      .ray-id {
+        font-size: 11px;
+        color: #aaa;
+        margin-top: 8px;
+      }
+
+      #status {
+        margin-top: 12px;
+        font-size: 14px;
+        color: #333;
+      }
+
+      .error {
+        color: #c0392b !important;
+        font-weight: 500;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="interstitial">
+      <div class="shield">
+        <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M36 6L10 20v18c0 16.6 11.1 32.1 26 36 14.9-3.9 26-19.4 26-36V20L36 6z"
+            fill="#f6821f"
+          />
+          <path d="M36 6v68c14.9-3.9 26-19.4 26-36V20L36 6z" fill="#faad3f" />
+          <path d="M33 42l-8-8 4-4 4 4 12-12 4 4L33 42z" fill="#fff" />
+        </svg>
+      </div>
+      <div class="domain" id="domain"></div>
+      <h1>Checking if the site connection is secure</h1>
+      <div class="checking" id="checking">
+        <span class="spinner"></span>
+        <span class="checkmark">✓</span>
+        <span id="checking-text"
+          >Verifying you are human. This may take a few seconds.</span
+        >
+      </div>
+      <div id="captcha-container"></div>
+      <p id="status"></p>
+      <div class="footer">
+        <span>Performance & security by</span>
+        <strong style="color: #f6821f">Cloudflare</strong>
+      </div>
+      <div class="ray-id" id="ray-id"></div>
+    </div>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const redirectUrl = params.get("url");
+
+      const status = document.getElementById("status");
+      const domain = document.getElementById("domain");
+      const checking = document.getElementById("checking");
+      const checkingText = document.getElementById("checking-text");
+      const rayId = document.getElementById("ray-id");
+
+      // Show domain from redirect URL
+      if (redirectUrl) {
+        try {
+          domain.textContent = new URL(redirectUrl).hostname;
+        } catch {
+          domain.textContent = "";
+        }
+      }
+
+      // Fake ray ID
+      rayId.textContent =
+        "Ray ID: " +
+        Array.from({ length: 16 }, () =>
+          Math.floor(Math.random() * 16).toString(16),
+        ).join("");
+
+      if (!redirectUrl) {
+        checkingText.textContent = "Missing ?url parameter.";
+        status.classList.add("error");
+        checking.querySelector(".spinner").style.display = "none";
+      }
+
+      // Cloudflare Turnstile test sitekeys:
+      // 1x00000000000000000000AA - always passes (visible)
+      // 2x00000000000000000000AB - always blocks (visible)
+      // 3x00000000000000000000FF - forces interactive challenge
+      const SITEKEY = "3x00000000000000000000FF";
+
+      function onTurnstileLoad() {
+        if (!redirectUrl) return;
+
+        turnstile.render(document.getElementById("captcha-container"), {
+          sitekey: SITEKEY,
+          callback: () => {
+            checking.classList.add("done");
+            checkingText.textContent = "Verified. Redirecting…";
+            setTimeout(() => {
+              window.location.href = redirectUrl;
+            }, 1500);
+          },
+          "error-callback": () => {
+            checking.querySelector(".spinner").style.display = "none";
+            status.textContent = "Verification failed. Please try again.";
+            status.classList.add("error");
+          },
+        });
+      }
+    </script>
+  </body>
+</html>
