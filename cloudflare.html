@@ -9,6 +9,11 @@
       async
       defer
     ></script>
+    <script
+      src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit"
+      async
+      defer
+    ></script>
     <style>
       * {
         box-sizing: border-box;
@@ -91,6 +96,9 @@
         <button class="btn" id="double-captcha-btn">
           Submit with Double Captcha
         </button>
+        <button class="btn" id="multi-captcha-btn">
+          Submit with Multi Captcha
+        </button>
         <button class="btn" id="captcha-redirect-btn">
           Submit with Captcha Redirect
         </button>
@@ -153,6 +161,12 @@
         showMessage();
       }
 
+      let recaptchaReady = false;
+
+      function onRecaptchaLoad() {
+        recaptchaReady = true;
+      }
+
       let doubleSolveCount = 0;
       let doubleWidgetId = null;
 
@@ -191,6 +205,62 @@
           }
 
           renderDoubleWidget();
+        });
+
+      document
+        .getElementById("multi-captcha-btn")
+        .addEventListener("click", () => {
+          if (!turnstileReady || !recaptchaReady)
+            return alert("Scripts still loading…");
+
+          let multiSolveCount = 0;
+          const container = document.getElementById("captcha-container");
+          container.innerHTML = "";
+          container.classList.add("visible");
+          document.getElementById("result").textContent = "";
+          hideMessage();
+
+          function renderMultiTurnstile() {
+            container.innerHTML = "";
+            turnstile.render(container, {
+              sitekey: SITEKEY,
+              callback: () => {
+                multiSolveCount++;
+                document.getElementById("result").textContent =
+                  "Solve " + multiSolveCount + "/3 — keep going.";
+                if (multiSolveCount < 2) {
+                  setTimeout(() => renderMultiTurnstile(), 500);
+                } else {
+                  setTimeout(() => renderMultiRecaptcha(), 500);
+                }
+              },
+              "error-callback": () => {
+                document.getElementById("result").textContent =
+                  "Verification failed.";
+              },
+            });
+          }
+
+          function renderMultiRecaptcha() {
+            container.innerHTML = "";
+            document.getElementById("result").textContent =
+              "Solve 2/3 — one more (reCAPTCHA).";
+            grecaptcha.render(container, {
+              sitekey: "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",
+              callback: () => {
+                multiSolveCount++;
+                document.getElementById("result").textContent =
+                  "All 3 challenges solved!";
+                showMessage();
+              },
+              "error-callback": () => {
+                document.getElementById("result").textContent =
+                  "reCAPTCHA verification failed.";
+              },
+            });
+          }
+
+          renderMultiTurnstile();
         });
 
       document
